@@ -74,13 +74,14 @@ def BuildUndirectedGoW(txt,words,window=2):
 	return Adj_mat
 
 
-def BasicDraw(G,labs):
+def BasicDraw(G,labs,title=""):
 	#Just draws graph of Words (undirected)
 	#IN: nx.Graph G, list<string> labs -- list of labels assigned to nodes
 	
 	N=len(G.nodes)#number of nodes
 
 	f, ax = plt.subplots(figsize=(12,12)) #is not returned TODO think about it
+	ax.set_title(title)
 
 	pos=nx.spring_layout(G, k= 1/np.sqrt(N)*35,iterations=710,weight=0.1) # positions for all nodes, parameters are purely experimental
 										#TODO check if you can change it
@@ -98,14 +99,17 @@ def BasicDraw(G,labs):
 	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,labs)),font_size=9)
 
 
-def LouvainCommunitiesPlot(G,labels):
+def LouvainCommunitiesPlot(G,labels,title=""):
 
 	communities = community.best_partition(G)
 
 	cmap_tab20 = plt.get_cmap("tab20")
+
 	f, ax = plt.subplots(figsize=(12,12))
+	ax.set_title(title)
 
 	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*35,iterations=710,weight=0.1) # positions for all nodes
+
 
 	for com_id in set(communities.values()) :
 		list_nodes = [nodes for nodes in communities.keys()
