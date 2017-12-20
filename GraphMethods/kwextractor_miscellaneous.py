@@ -18,6 +18,8 @@ import matplotlib
 
 import community #python-louvain, download and install it externally
 
+import itertools
+import networkx.algorithms.community as nxcomm #networkx community detection module
 
 
 def NormalizeTextFromRaw(rawText):
@@ -99,7 +101,8 @@ def BasicDraw(G,labs,title=""):
 	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,labs)),font_size=9)
 
 
-def LouvainCommunitiesPlot(G,labels,title=""):
+
+def LouvainCommunitiesPlot(G,labels,title=""): #uses dormat of python-louvain
 
 	communities = community.best_partition(G)
 
@@ -121,4 +124,48 @@ def LouvainCommunitiesPlot(G,labels,title=""):
 	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
 
 	return communities #in python-louvain format
+
+
+
+def GirvanNewmanBestModularity(G):
+	#IN nx.Graph G
+	#OUT best community split produced by GirvanNewman
+
+	communities = list(nxcomm.centrality.girvan_newman(G))
+
+	#print(list(list(comp)[5])) # format for community.quality.modularity
+
+	#choose the best partition from produced ones 
+	bestModularity = -np.inf
+	bestCommunities = [] #init
+	for i in np.arange(len(communities)):		
+		comm=list(communities[i])
+		mod = nxcomm.quality.modularity(G,comm)
+		if(mod>bestModularity):
+			bestModularity = mod
+			bestCommunities = comm
 	
+	return bestCommunities
+
+def GirvanNewmanCommunitiesPlot(G,labels,title=""):  #uses format of Networkx
+
+	communities = GirvanNewmanBestModularity(G)
+ 
+
+	cmap_tab20 = plt.get_cmap("tab20")
+
+	f, ax = plt.subplots(figsize=(12,12))
+	ax.set_title(title)
+
+	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*35,iterations=710,weight=0.1) # positions for all nodes
+
+
+	for com_id in np.arange(len(communities)):
+		
+		nx.draw_networkx_nodes(G, pos, list(communities[com_id]), node_size = len(communities[com_id])**2*20,
+				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
+    
+	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
+	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
+
+	return communities #in networkx format	
