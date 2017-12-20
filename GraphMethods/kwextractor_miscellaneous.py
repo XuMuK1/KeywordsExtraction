@@ -16,6 +16,10 @@ import scipy.sparse as sps
 import matplotlib.pyplot as plt
 import matplotlib
 
+import community #python-louvain, download and install it externally
+
+
+
 def NormalizeTextFromRaw(rawText):
 	#IN raw text
 	#OUT extracted words, normalized original nltk.Text (tokenized,lowercased)
@@ -23,18 +27,22 @@ def NormalizeTextFromRaw(rawText):
 	rawText = re.sub(r'\d+', '', rawText)
 	tokens = nltk.tokenize.RegexpTokenizer(r'\w+').tokenize(rawText)
 
-	postags = nltk.pos_tag(tokens)
+	postags = nltk.pos_tag(tokens) 
+	#print(postags)
 	text= nltk.Text(tokens)
 	words = [w.lower() for w in text]
 
-	return (GetWordsFromText(words,postags),words) 
+	return (GetWordsFromText(words,postags),words)   #wordList, text
 
 def GetWordsFromText(words,postags):
 	#Gets the wordList	
-	wordList = [words[k] for k in np.arange(len(words)) if ("ADJ" in postags[k][1]) or ("NN" in postags[k][1])]
-	wordList=np.unique(words)
+	#print(len(words))
+	wordList = [words[k] for k in np.arange(len(words)) if ((postags[k][1].find("JJ")>=0) or (postags[k][1].find("NN")>=0))]
+	#print(len(wordList))
+	wordList=np.unique(wordList)
+	#print(len(wordList))
 	wordList = np.array([word for word in wordList if word not in set(nltk.corpus.stopwords.words('english'))])
-
+	#print(wordList.shape)
 	return wordList
 
 
@@ -48,10 +56,10 @@ def BuildUndirectedGoW(txt,words,window=2):
 	Adj_mat = sps.lil_matrix((len(words),len(words)),dtype="float64")
 
 	for i in np.arange(len(txt)):
-		src=np.where(words==txt[i])
-		if(len(src)>0):
+		src=np.where(words[:]==txt[i])
+		if(len(src)>0):   
 			for j in np.arange(i+1,np.min([i+window,len(txt)])):
-				dest=np.where(words==txt[j])
+				dest=np.where(words[:]==txt[j])
 				if(len(dest)>0):
 					if(not src == dest):
 						try:
@@ -86,6 +94,27 @@ def BasicDraw(G,labs):
 	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
 
 	# labels
-	nx.draw_networkx_labels(G,pos,dict(zip(np.arange(len(labs)),labs)),font_size=9)
+	#print(G.nodes)
+	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,labs)),font_size=9)
 
 
+def LouvainCommunitiesPlot(G,labels):
+
+	communities = community.best_partition(G)
+
+	cmap_tab20 = plt.get_cmap("tab20")
+	f, ax = plt.subplots(figsize=(12,12))
+
+	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*35,iterations=710,weight=0.1) # positions for all nodes
+
+	for com_id in set(communities.values()) :
+		list_nodes = [nodes for nodes in communities.keys()
+			if communities[nodes] == com_id]
+		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)**2*20,
+				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
+    
+	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
+	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
+
+	return communities #in python-louvain format
+	
