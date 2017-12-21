@@ -18,6 +18,8 @@ import matplotlib
 
 import community #python-louvain, download and install it externally
 
+import itertools
+import networkx.algorithms.community as nxcomm #networkx community detection module
 
 
 def NormalizeTextFromRaw(rawText):
@@ -26,6 +28,9 @@ def NormalizeTextFromRaw(rawText):
 
 	rawText = re.sub(r'\d+', '', rawText)
 	tokens = nltk.tokenize.RegexpTokenizer(r'\w+').tokenize(rawText)
+
+	#tokens = nltk.word_tokenize(rawText) REALLY BAD
+	#tokens = [tok for tok in tokens if (re.search("[a-zA-Z0-9]",tok) is not None)]
 
 	postags = nltk.pos_tag(tokens) 
 	#print(postags)
@@ -99,10 +104,63 @@ def BasicDraw(G,labs,title=""):
 	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,labs)),font_size=9)
 
 
-def LouvainCommunitiesPlot(G,labels,title=""):
+
+def LouvainCommunitiesPlot(G,labels,title=""): #uses dormat of python-louvain
 
 	communities = community.best_partition(G)
+	PlotCommunitiesLouvain(G,communities,labels,title=title)
+	return communities #in python-louvain format
 
+
+
+def GirvanNewmanBestModularity(G):
+	#IN nx.Graph G
+	#OUT best community split produced by GirvanNewman
+
+	communities = list(nxcomm.centrality.girvan_newman(G))
+
+	#print(list(list(comp)[5])) # format for community.quality.modularity
+
+	#choose the best partition from produced ones 
+	bestModularity = -np.inf
+	bestCommunities = [] #init
+	for i in np.arange(len(communities)):		
+		comm=list(communities[i])
+		mod = nxcomm.quality.modularity(G,comm)
+		if(mod>bestModularity):
+			bestModularity = mod
+			bestCommunities = comm
+	
+	return bestCommunities
+
+
+def GirvanNewmanCommunitiesPlot(G,labels,title=""):  #uses format of Networkx
+
+	communities = GirvanNewmanBestModularity(G) 
+	PlotCommunitiesNX(G,communities,labels,title=title)
+	return communities #in networkx format
+
+
+def PlotCommunitiesNX(G,communities,labels,title=""):
+	#plots communities (in networkx format) on graph G	
+	cmap_tab20 = plt.get_cmap("tab20")
+
+	f, ax = plt.subplots(figsize=(12,12))
+	ax.set_title(title)
+
+	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*35,iterations=710,weight=0.1) # positions for all nodes
+
+
+	for com_id in np.arange(len(communities)):		
+		nx.draw_networkx_nodes(G, pos, list(communities[com_id]), node_size = len(communities[com_id])*20,
+				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
+    
+	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
+	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
+	
+
+def PlotCommunitiesLouvain(G,communities,labels,title=""):
+	#plots communities (in python-louvain format) on graph G	
 	cmap_tab20 = plt.get_cmap("tab20")
 
 	f, ax = plt.subplots(figsize=(12,12))
@@ -114,11 +172,8 @@ def LouvainCommunitiesPlot(G,labels,title=""):
 	for com_id in set(communities.values()) :
 		list_nodes = [nodes for nodes in communities.keys()
 			if communities[nodes] == com_id]
-		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)**2*20,
+		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)*20,
 				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
     
 	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
 	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
-
-	return communities #in python-louvain format
-	
