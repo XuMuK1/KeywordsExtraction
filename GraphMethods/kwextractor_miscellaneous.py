@@ -29,6 +29,9 @@ def NormalizeTextFromRaw(rawText):
 	rawText = re.sub(r'\d+', '', rawText)
 	tokens = nltk.tokenize.RegexpTokenizer(r'\w+').tokenize(rawText)
 
+	#tokens = nltk.word_tokenize(rawText) REALLY BAD
+	#tokens = [tok for tok in tokens if (re.search("[a-zA-Z0-9]",tok) is not None)]
+
 	postags = nltk.pos_tag(tokens) 
 	#print(postags)
 	text= nltk.Text(tokens)
@@ -149,7 +152,7 @@ def PlotCommunitiesNX(G,communities,labels,title=""):
 
 
 	for com_id in np.arange(len(communities)):		
-		nx.draw_networkx_nodes(G, pos, list(communities[com_id]), node_size = len(communities[com_id])**2*20,
+		nx.draw_networkx_nodes(G, pos, list(communities[com_id]), node_size = len(communities[com_id])*20,
 				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
     
 	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
@@ -169,7 +172,7 @@ def PlotCommunitiesLouvain(G,communities,labels,title=""):
 	for com_id in set(communities.values()) :
 		list_nodes = [nodes for nodes in communities.keys()
 			if communities[nodes] == com_id]
-		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)**2*20,
+		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)*20,
 				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
     
 	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
