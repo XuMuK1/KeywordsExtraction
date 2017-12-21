@@ -13,7 +13,7 @@ class DataReader(object):
     """
 
     def __init__(self):
-        self.data_path = "data/500N-KPCrowd-v1.1/CorpusAndCrowdsourcingAnnotations"
+        self.data_path = "./500N-KPCrowd-v1.1/CorpusAndCrowdsourcingAnnotations"
         self.train_dir_name = "train"
         self.test_dir_name = "test"
         self.train_data = None
