@@ -5,7 +5,7 @@ import numpy as np
 import scipy.sparse as sps
 import networkx as nx
 import networkx.algorithms.community as nxcomm
-import kwextractor_miscellaneous as kwmisc #import the module
+import graphMethods.kwextractor_miscellaneous as kwmisc #import the module
 import collections
 import community
 
