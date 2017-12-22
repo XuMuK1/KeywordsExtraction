@@ -88,7 +88,7 @@ def BasicDraw(G,labs,title=""):
 	f, ax = plt.subplots(figsize=(12,12)) #is not returned TODO think about it
 	ax.set_title(title)
 
-	pos=nx.spring_layout(G, k= 1/np.sqrt(N)*35,iterations=710,weight=0.1) # positions for all nodes, parameters are purely experimental
+	pos=nx.spring_layout(G, k= 1/np.sqrt(N)*35,iterations=910,weight=0.1) # positions for all nodes, parameters are purely experimental
 										#TODO check if you can change it
 	nx.draw_networkx_nodes(G,pos,
                        node_list=labs,
@@ -148,15 +148,16 @@ def PlotCommunitiesNX(G,communities,labels,title=""):
 	f, ax = plt.subplots(figsize=(12,12))
 	ax.set_title(title)
 
-	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*35,iterations=710,weight=0.1) # positions for all nodes
+	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*180,iterations=1100,weight=0.1) # positions for all nodes
 
 
 	for com_id in np.arange(len(communities)):		
 		nx.draw_networkx_nodes(G, pos, list(communities[com_id]), node_size = len(communities[com_id])*20,
 				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
-    
+		nx.draw_networkx_labels(G,pos,dict(zip(list(communities[com_id]),list(labels[list(communities[com_id])]))),font_size=7+len(communities[com_id])*0.35)
+
 	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
-	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
+		
 	
 
 def PlotCommunitiesLouvain(G,communities,labels,title=""):
@@ -166,14 +167,16 @@ def PlotCommunitiesLouvain(G,communities,labels,title=""):
 	f, ax = plt.subplots(figsize=(12,12))
 	ax.set_title(title)
 
-	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*35,iterations=710,weight=0.1) # positions for all nodes
+	pos=nx.spring_layout(G, k= 1/np.sqrt(len(G.nodes))*180,iterations=1100,weight=0.1) # positions for all nodes
 
 
 	for com_id in set(communities.values()) :
 		list_nodes = [nodes for nodes in communities.keys()
 			if communities[nodes] == com_id]
-		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)*20,
+		nx.draw_networkx_nodes(G, pos, list_nodes, node_size = len(list_nodes)*30,
 				node_color = ""+matplotlib.colors.to_hex(cmap_tab20(com_id)))
-    
+
+		nx.draw_networkx_labels(G,pos,dict(zip(list_nodes,list(labels[list_nodes]))),font_size=7+len(list_nodes)*0.25)
+
 	nx.draw_networkx_edges(G,pos,width=0.5,arrows=False,alpha=0.5)
-	nx.draw_networkx_labels(G,pos,dict(zip(G.nodes,list(labels))),font_size=9)
+	
